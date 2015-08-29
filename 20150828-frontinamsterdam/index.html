@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Building &lt;x-nes&gt;</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<style>
+			img.fullscreen {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				border: none;
+			}
+
+			span.code {
+				font-family: monospace !important;
+				text-transform: none !important;
+				color: #727476;
+				font-weight: normal;
+			}
+
+			span.code .tag {
+				color: #D177D7;
+			}
+		</style>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Building <span class="code">&lt;<span class="tag">x-nes</span>&gt;</span></h1>
+					<p>
+						<small><a href="http://koen.codes">Koen Kivits</a> / <a href="http://twitter.com/koenkivits">@koenkivits</a></small>
+					</p>
+				</section>
+
+				<section data-background="content/nesad.jpeg" data-background-transition="none">
+				</section>
+
+				<section>
+					<h2><a href="http://koen.kivits.com/x-nes" target="xnes"><img src="content/screenshot.png"></a></h2>
+				</section>
+
+				<section>
+					<p>New EcmaScript NES</p>
+					<h2 class="fragment">NESNES</h2>
+				</section>
+
+				<section>
+					<h2>What's in a game?</h2>
+				</section>
+
+				<!-- Example of nested vertical slides -->
+				<section>
+					<h3>Graphics</h3>
+					<img class="fragment" style="height: 224px" src="content/sprites.png">
+					<img class="fragment" src="content/smb.png">
+				</section>
+
+				<section>
+					<h3>Machine code</h3>
+					<pre class="fragment"><code class="nohighlight">AD 00 10 6D 01 10 8D 00 10</code></pre>
+					<pre class="fragment"><code class="nohighlight">AD 00 10
+6D 01 10
+8D 00 10</code></pre>
+					<div class="fragment">
+						<pre><code class="nohighlight">LDA $1000
+ADC $1001
+STA $1000</code></pre>
+					</div>
+
+					<div class="fragment">
+						<pre><code class="javascript">a = a + b</code></pre>
+					</div>
+				</section>
+
+				<section>
+					<h3>Emulating</h3>
+					<pre><code>function executeNext() {
+    var opCode = fetchNextOpcode();
+
+    switch ( opCode ) {
+    case 0xAD:
+        LDA();
+        break;
+    case 0x6D:
+        ADC();
+        break;
+    /* etc .. */
+    }
+}</code></pre>
+				</section>
+
+				<section>
+					<h3>Performance</h3>
+					<ul>
+						<li>1,79 MHz <span class="fragment">&rarr; ± 450K instr/sec</span></li>
+						<li>256x240 at 60 Hz <span class="fragment">&rarr; ± 3.7M pixels/sec</span></li>
+					</ul>
+					<aside class="notes">
+						JavaScript is slow.
+					</aside>
+				</section>
+
+				<section>
+					<p style="font-size: 350px; font-family: monospace; white-space: nowrap;"><span class="fragment" data-fragment-index="0">&lt;</span><img style="vertical-align: middle; margin: .1em;" src="content/yeah.jpg"><span class="fragment" data-fragment-index="0">&gt;</span>
+					</p>
+				</section>
+
+				<section>
+					<h2>Web Components</h2>
+					<ul>
+						<li>HTML imports</li>
+						<li>&lt;template&gt;</li>
+						<li>Custom Elements</li>
+						<li>Shadow DOM</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2><a href="http://koen.kivits.com/x-nes" target="xnes"><img src="content/screenshot.png"></a></h2>
+				</section>
+
+				<section>
+					<h3>The basics</h3>
+
+					<p><pre><code class="javascript fragment">var nesProto = Object.create( HTMLElement.prototype );
+
+</code><code class="javascript fragment">nesProto.createdCallback = function() {
+	// x-nes setup
+};
+
+</code><code class="javascript fragment">nesProto.attributeChangedCallback = function(name, oldV, newV) {
+	// x-nes attribute change handler
+};
+
+</code><code class="javascript fragment">document.registerElement("x-nes", {
+	prototype: nesProto
+});</code></pre></p>
+				</section>
+
+				<section>
+					<h3>Setting up</h3>
+
+					<p><pre><code class="fragment javascript">// select from imported HTML
+var currentDoc = document.currentScript.ownerDocument;
+var template = currentDoc.querySelector("template");
+
+</code><code class="fragment javascript">// initialize shadow DOM
+var root = el.createShadowRoot();
+var node = document.importNode(template.content, true);
+root.appendChild(node);
+
+</code><code class="fragment javascript">// initialize emulator
+el.nesnes = new NesNes(root.querySelector("canvas"));
+el.nesnes.load(el.getAttribute("src"), true);</code></pre></p>
+				</section>
+
+				<section>
+					<h2><a href="http://koen.kivits.com/x-nes" target="xnes"><img src="content/screenshot.png"></a></h2>
+				</section>
+
+				<section>
+					<h2>Browser support</h2>
+					<img src="content/support.png">
+					<p><small>(source: <a target="_blank" href="http://webcomponents.org">webcomponents.org</a>)</small></p>
+				</section>
+
+				<section>
+					<h2><span class="code">&lt;/<span class="tag">x-nes</span>&gt;</span></h2>
+					<small>
+						<ul style="list-style-type: none; margin: 0">
+							<li><a href="https://github.com/koenkivits/nesnes">github.com/koenkivits/nesnes</a></li>
+							<li><a href="https://github.com/koenkivits/x-nes">github.com/koenkivits/x-nes</a></li>
+						</ul>
+					</small>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'fade', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

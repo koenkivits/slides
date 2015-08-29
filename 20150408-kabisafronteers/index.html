@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Bowser in de Browser</title>
+
+		<meta name="description" content="Een NES emulator maken in JavaScript.">
+		<meta name="author" content="Koen Kivits">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/custom.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Bowser in de Browser</h1>
+					<img style="box-shadow: none;" src="./img/bowser.png" alt="Bowser. In een browser.">
+					<p>
+						<small><a href="http://twitter.com/koenkivits">@koenkivits</a></small>
+					</p>
+
+					<aside class="notes">Introductie.</aside>
+				</section>
+
+				<section>
+					<h2>NESNES</h2>
+					<aside class="notes">
+						<ul>
+							<li>Niet de de eerste NES-emulator. Niet buiten de browser maar ook zeker niet in de browser.</li>
+							<li>Opgegroeid met NES</li>
+							<li>speelde vroeger al met emulators</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<iframe width="420" height="315" src="https://www.youtube.com/embed/x3rPDZm_1rI" frameborder="0" allowfullscreen></iframe>
+				</section>
+
+				<section>
+					<blockquote>
+						... dus je gokt erop dat de snelheid van computers de traagheid van JavaScript heeft ingehaald?
+					</blockquote>
+					<small><cite>een anonieme collega</cite></small>
+					<p class="fragment">
+						Ja en nee.
+					</p>
+
+					<aside class="notes">
+						<ul>
+							<li>Wet van Moore</li>
+							<li>Komst van Chrome</li>
+							<li>Verbeteringen Fx, IE</li>
+						</ul>
+					</aside>
+				</section>
+
+				<!-- Example of nested vertical slides -->
+				<section>
+					<h2>Now You're playing with power!</h2>
+					<ul class="fragment">
+						<li>1,79 MHz CPU</li>
+						<li>max 32 kB programma, max 8 kB graphics</li>
+						<li>2 kB RAM, 2kB videogeheugen</li>
+						<li>256 &times; 240 resolutie</li>
+						<li>54 kleuren</li>
+						<li>mono audio</li>
+					</ul>
+				</section>
+
+				<section>
+					<img style="width: 50%;" src="./img/smb.png" alt="Super Mario Bros">
+					<p>1983</p>
+
+					<aside class="notes">&hellip; maar dan is er ook nog de hardware in de cartridge</aside>
+				</section>
+
+				<section>
+					<img style="width: 50%;" src="./img/kirby.png" alt="Kirby">
+					<p>1993</p>
+				</section>
+
+				<section>
+					<h2>Hoe begin ik?</h2>
+					<p><span class="fragment">Heel. Veel. Lezen.</p>
+
+					<aside class="notes">
+						<ul>
+							<li>Veel ge-emuleerd, dus ook veel gedocumenteerd.</li>
+							<li>"Wat is nu een ROM?"</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<p>
+						<img style="width: 150px" src="./img/file-icon.png">
+						<small style="display: block">Super Mario Bros.nes</small>
+					</p>
+					<ol>
+						<li class="fragment">16 bytes header</li>
+						<li class="fragment">het programma</li>
+						<li class="fragment">de graphics</li>
+					</ol>
+
+					<aside class="notes">Digitale representatie van cartridge.</aside>
+				</section>
+
+				<section>
+					<h2>Programma</h2>
+					<pre><code class="nohighlight">C1 01 02 80 00 9B 10 18 05 2C 20 24 15 5A 10 20 28
+30 20 10 80 20 30 30 01 FF 00 AE 17 07 AD 18 07 D0
+0D E8 EE 17 07 38 BD 54 83 8D 18 07 F0 0A BD 3F 83
+8D FC 06 CE 18 07 18 60 20 A0 83 AD 72 07 F0 07 A2
+00 86 08 20 47 C0 20 2A F1 4C E9 EE AD 72 07 20 04
+8E EC CF B0 83 BD 83 F6 83 61 84 AE 1B 07 E8 86 34
+A9 08 85 FC 4C 4E 87 A0 00 84 35 A5 6D C5 34 D0 06</code></pre>
+
+					<aside class="notes">
+						<ul>
+							<li>Data uit Super Mario Bros.</li>
+							<li>Bytes in hexadecimale representatie</li>
+							<li>Zegt misschien niet veel, laten we voorbeeld erbij pakken</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h3>De processor</h3>
+					<img src="./img/6502.png">
+					<br>
+					<div class="fragment">
+						<img style="height: 210px" src="./img/appleii.png">
+						<img style="height: 210px" src="./img/atari2600.jpg">
+						<img style="height: 210px" src="./img/c64.jpg">
+					</div>
+				</section>
+
+				<section>
+					<pre><code class="nohighlight">AD 00 10 6D 01 10 8D 00 10</code></pre>
+					<pre class="fragment"><code class="nohighlight">AD 00 10
+6D 01 10
+8D 00 10</code></pre>
+					<div class="fragment">
+						<pre><code class="nohighlight">LDA $1000
+ADC $1001
+STA $1000</code></pre>
+						<small>0xAD = LDA, 0x6D = ADC, 0x8D = STA</small>
+					</div>
+
+					<aside class="notes">
+						<ul>
+							<li>dit is de taal die de processor spreekt</li>
+							<li>zelfde processor als Apple I/II, Atari 2600, bijna C64</li>
+							<li>dat laatste is Assembly</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h2>Assembly, disassembled</h2>
+					<div class="fragment">
+						<pre><code class="nohighlight">LDA $1000</code></pre>
+						<small>Laad waarde op geheugenlocatie $1001 in <strong>accumulator</strong>.</small>
+					</div>
+					<div class="fragment">
+						<pre><code class="nohighlight">ADC $1001</code></pre>
+						<small>Tel waarde in $1001 op bij waarde in accumulator.</small>
+					</div>
+					<div class="fragment">
+						<pre><code class="nohighlight">STA $1000</code></pre>
+						<small>Schrijf waarde in accumulator terug naar $1000.</small>
+					</div>
+
+					<div class="fragment">
+						<pre><code class="javascript">a = a + b</code></pre>
+						<small>( $1000 = a, $1001 = b )</small>
+					</div>
+
+					<aside class="notes">Uitleg over accumulator.</aside>
+				</section>
+
+				<section>
+					<h2>6502 operaties</h2>
+					<ul>
+						<li>Rekenen: ADC, SBC, INC, DEC</li>
+						<li>Bitwise operaties: AND, ORA, ASL</li>
+						<li>Branching: BNE, BEQ</li>
+						<li>Subroutines: JSR, RTI</li>
+					</ul>
+
+					<aside class="notes">
+						<ul>
+							<li>geen vermenigvuldigen / delen</li>
+							<li>in totaal 151 operaties</li>
+							<li>huidige processoren kunnen meer, maar komt nog steeds op hetzelfde neer</li>
+							<li>voorbeeld op volgende slide</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h3>JavaScript &rarr; Assembly</h3>
+					<pre><code class="javascript">if ( a === b ) {
+    b++;
+}
+a++;</code></pre>
+					<pre class="fragment"><code class="nohighlight">        LDA $1000
+        CMP $1001
+        BNE next
+        INC $1001
+next:   INC $1000</code></pre>
+				</section>
+
+				<section>
+					<h3>?</h3>
+					<pre><code class="javascript">var list = [];
+list.push( "something" );
+list[ 456 ] = 8;</code></pre>
+					<pre class="fragment"><code class="javascript">list = "a string";</code></pre>
+					<pre class="fragment"><code class="javascript">doSomething.apply( {}, list.map( String ) );</code></pre>
+					<pre class="fragment"><code class="javascript">eval("var b = false;");</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>array dynamische lengte</li>
+							<li>verschillende types in array</li>
+							<li>garbage collection</li>
+							<li>asm.js</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h3>Terug naar emuleren</h3>
+					<pre><code class="nohighlight">AD 00 10 6D 01 10 8D 00 10</code></pre>
+					<pre class="fragment"><code>function executeNext() {
+    var opCode = fetchNextOpcode();
+
+    switch ( opCode ) {
+    case 0xAD:
+        LDA();
+        break;
+    case 0x6D:
+        ADC();
+        break;
+    case 0x8D:
+        STA();
+        break;
+    /* etc .. */
+    }
+}</code></pre>
+				</section>
+
+				<section>
+					<pre><code class="javascript">function INC() {
+    // perform actual operation
+    var result = write( (value + 1) & 0xff );
+
+    // write status flags
+    flagN = !!( result & 0x80 );
+    flagZ = ( result === 0 );
+}</code></pre>
+				</section>
+
+				<section>
+					<h2>Memory mapping</h2>
+					<ul>
+						<li>$0000 &mdash; $07FF: RAM</li>
+						<li>$4020 &mdash; $FFFF: cartridge</li>
+						<li>$2000 &mdash; $2007: graphics</li>
+						<li>$4000 &mdash; $401F: audio</li>
+						<li>$4016, $4017: controllers</li>
+					</ul>
+
+					<aside class="notes">
+						<ul>
+							<li>gaten en overlap in, ga ik nu niet verder op in</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h2>Graphics</h2>
+					<img src="./img/ducktales.png">
+
+					<aside class="notes">
+						Aangestuurd door te schrijven en te lezen van / naar speciale geheugenlocaties.
+					</aside>
+				</section>
+
+				<section>
+					<h3>Tiles</h3>
+					<img style="width: 30%" src="./img/sprites.bmp"> <img style="width: 30%" src="./img/bg.bmp">
+
+					<aside class="notes">
+						<ul>
+							<li>8px &times; 8px</li>
+							<li>4 kB sprites, 4 kB achtergrond</li>
+							<li>geen vrij tekenen</li>
+							<li>geen transformaties</li>
+							<li>geen tekst</li>
+							<li>enkel tiles</li>
+							<li>3 kleuren, definitieve kleur bij tekenen</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<img style="width: 50%" src="./img/smbtiles.png">
+					<ul>
+						<li>32 &times; 30 tiles in achtergrond</li>
+						<li>2 achtergronden, scrollbaar</li>
+						<li>64 tiles op voorgrond, 'position: fixed'</li>
+					</ul>
+
+					<aside class="notes">
+						Wordt pixel voor pixel getekend (want volgende slide)
+					</aside>
+				</section>
+
+				<section>
+					<img style="width: 40%" src="./img/slalom1.png">
+					<img style="width: 40%" src="./img/slalom2.png">
+				</section>
+
+				<section>
+					<pre><code class="javascript">function drawPixel() {}
+    var color,
+        bgColor = getBgColor(),
+    	spriteColor = getSpriteColor();
+
+    if ( spriteColor ) {
+        color = spriteColor;
+    } else {
+        color = bgColor;
+    }
+
+    output[ pixelIndex++ ] = reds[ color ];
+    output[ pixelIndex++ ] = greens[ color ];
+    output[ pixelIndex++ ] = blues[ color ];
+    output[ pixelIndex++ ] = 0xff;
+}</code></pre>
+
+					<pre class="fragment"><code class="javascript">function drawFrame() {
+    imageData.set( output );
+    canvas.getContext("2d").putImageData( imageData );
+}</code></pre>
+					<aside class="notes">
+						<ul>
+							<li>gebeurt 60x per seconde</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h2>Audio</h2>
+
+					<aside class="notes">
+						Web audio. Eveneens aangestuurd middels speciale geheugenlocaties.
+					</aside>
+				</section>
+
+				<section>
+					<h3>5 kanalen</h3>
+					<ul>
+						<li>2 &times; square</li>
+						<li>triangle</li>
+						<li>random noise</li>
+						<li>DMC</li>
+					</ul>
+
+					<aside class="notes">
+						<ul>
+							<li>square &amp; triangle meestal voor muziek</li>
+							<li>noise voor bijv. explosies</li>
+							<li>DMC voor speciale geluiden</li>
+							<li>alles nog steeds mono</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<img src="./img/square_wave.jpg">
+
+					<aside class="notes">
+						<ul>
+							<li>Square en triangle regelmatige golf</li>
+							<li>Square ziet er ongeveer zo uit.
+							<li>Vrij eenvoudig met web audio.</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+				<pre><code class="javascript">var context = new AudioContext();
+
+var oscillator = context.createOscillator();
+oscillator.connect( context.destination );
+
+oscillator.type = 'square';
+oscillator.frequency.value = 440;
+oscillator.start();</code></pre>
+
+					<script>function toggleOscillator( elm, type ) {
+						if ( elm.oscillator ) {
+							elm.oscillator.stop();
+							delete elm.oscillator;
+						} else {
+							elm.frequency = elm.frequency || 440;
+
+							var context = new AudioContext();
+
+							var oscillator = context.createOscillator();
+							oscillator.connect( context.destination );
+
+							oscillator.type = type;
+							oscillator.frequency.value = elm.frequency;
+							oscillator.start();
+
+							elm.frequency += 10;
+
+							elm.oscillator = oscillator;
+						}
+					}</script>
+
+					<button onclick="toggleOscillator(this, 'square')">► play (square)</button>
+					<button onclick="toggleOscillator(this, 'triangle')">► play (triangle)</button>
+
+					<aside class="notes">
+						<ul>
+							<li>moeilijk accuraat geluid te krijgen</li>
+							<li>werkt niet voor noise, DMC</li>
+						</ul>
+					</aside>
+				</section>
+				
+				<section>
+					<h3>Sampling</h3>
+					<img src="./img/sampling.jpg">
+
+					<aside class="notes">Samplerate</aside>
+				</section>
+
+				<section>
+					<pre><code class="javascript">var context = new AudioContext();
+var audioBuffer = context.createBuffer(
+    1,
+    bufferLength,
+    context.sampleRate
+);
+var audioBufferData = audioBuffer.getChannelData( 0 );
+</code></pre>
+					<p class="fragment">&hellip; vervolgens vullen we <code>audioBufferData</code> &hellip;</p>
+
+					<pre class="fragment"><code class="javascript">var audioBufferSource = context.createBufferSource();
+audioBufferSource.connect( context.destination );
+audioBufferSource.buffer = audioBuffer;
+audioBufferSource.start( 0 );</code></pre>
+				</section>
+
+				<section>
+					<h2>Putting it al together</h2>
+
+					<aside class="notes">Switch naar emulator.</aside>
+				</section>
+
+				<section>
+					<h2>NESNES is nog niet af.</h2>
+
+					<pre class="fragment"><code class="html">&lt;nes src="games/supermariobros.nes"&gt;
+    &lt;!-- fallback content --&gt;
+&lt;/nes&gt;</code></pre>
+
+					<aside class="notes">Op kleine bugs na (bijv. Spy vs. Spy)</aside>
+				</section>
+
+				<section>
+					<img style="width: 50%" src="./img/castle.png">
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
